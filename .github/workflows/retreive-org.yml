@@ -5,6 +5,8 @@ on:
             [ develop, master ]
         paths:
             - 'force-app/**'
+        paths-ignore:
+            - '.github/workflows/**'
     workflow_dispatch:
 jobs:
     validate-deployment:
