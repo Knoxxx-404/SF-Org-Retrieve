@@ -9,7 +9,7 @@ on:
         # only one can be used paths or paths-ignore, both can't be used at a time
         # paths-ignore:
         #     - '.github/workflows/**'
-        
+
     workflow_dispatch:
 jobs:
     validate-deployment:
@@ -47,5 +47,11 @@ jobs:
 
             - name: Validate Code Deployment
               run: sf project deploy validate --source-dir force-app --target-org ${{ secrets.SF_TRG_ORG_ALIAS }} --verbose --test-level RunLocalTests
+
+            - name: Upload Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                name: package-files
+                path: out/package/
 
                 
