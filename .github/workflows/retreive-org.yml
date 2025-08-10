@@ -5,8 +5,11 @@ on:
             [ develop, master ]
         paths:
             - 'force-app/**'
-        paths-ignore:
-            - '.github/workflows/**'
+
+        # only one can be used paths or paths-ignore, both can't be used at a time
+        # paths-ignore:
+        #     - '.github/workflows/**'
+        
     workflow_dispatch:
 jobs:
     validate-deployment:
