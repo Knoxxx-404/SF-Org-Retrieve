@@ -7,11 +7,12 @@ on:
             - 'force-app/**'
     workflow_dispatch:
 jobs:
-    install-sf-cli:
+    validate-deployment:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout the Code
               uses: actions/checkout@v4
+
             - name: Installing sf cli
               run: |
                 echo Installing sf...
@@ -19,13 +20,19 @@ jobs:
                 mkdir -p sf-cli
                 tar -xzf sf-linux-x64.tar.gz -C sf-cli --strip-components 1
                 echo "${PWD}/sf-cli/bin" >> $GITHUB_PATH
+
             - name: Checking sf cli
               run: sf --version
+
             - name: Write Auth URL to File
               run: echo "${{ secrets.SF_TRG_SECURITY }}" > dxsecurity
+
             - name: Authorize Org via Auth URL
               run: |
                 sf org login sfdx-url --sfdx-url-file dxsecurity --alias ${{ secrets.SF_TRG_ORG_ALIAS }} --set-default
                 echo "Authorized org and set alias to [${{ secrets.SF_TRG_ORG_ALIAS }}]"
+
+            - name: Validate Code Deployment
+              run: sf project deploy validate --target-org ${{ secrets.SF_TRG_ORG_ALIAS }} --ignore-conflicts --verbose
 
                 
