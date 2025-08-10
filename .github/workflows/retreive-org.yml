@@ -33,6 +33,6 @@ jobs:
                 echo "Authorized org and set alias to [${{ secrets.SF_TRG_ORG_ALIAS }}]"
 
             - name: Validate Code Deployment
-              run: sf project deploy validate --target-org ${{ secrets.SF_TRG_ORG_ALIAS }} --ignore-conflicts --verbose
+              run: sf project deploy validate --target-org ${{ secrets.SF_TRG_ORG_ALIAS }} --verbose --test-level RunLocalTests
 
                 
