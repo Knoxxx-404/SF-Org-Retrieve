@@ -11,7 +11,15 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout the Code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v3
+              with:
+                ref: ${{ github.event.inputs.source_branch }}
+
+            - name: Debug:Show directory structure
+              run: |
+                echo "Current directory: $(pwd)"
+                ls -la
+                ls -la force-app || echo "force-app does not exist"
 
             - name: Installing sf cli
               run: |
