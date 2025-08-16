@@ -52,3 +52,9 @@ jobs:
               run: |
                 sf org list metadata-types --target-org ${{ secrets.SF_TRG_ORG_ALIAS }} --apiversion 64.0 --json \
                 | jq -r '.result.metadataObjects[].xmlName' | sort -u > supported-types.txt
+
+            - name: Upload supported-types.txt
+              uses: actions/upload-artifact@v4
+              with:
+                name: supported-types
+                path: supported-types.txt
