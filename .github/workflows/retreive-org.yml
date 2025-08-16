@@ -45,13 +45,10 @@ jobs:
                 sf org login sfdx-url --sfdx-url-file dxsecurity --alias ${{ secrets.SF_TRG_ORG_ALIAS }} --set-default
                 echo "Authorized org and set alias to [${{ secrets.SF_TRG_ORG_ALIAS }}]"
 
-            - name: Validate Code Deployment
-              run: sf project deploy validate --source-dir force-app --target-org ${{ secrets.SF_TRG_ORG_ALIAS }} --verbose --test-level RunLocalTests
+            - name: Show Org Details
+              run: sf org display --target-org ${{ secrets.SF_TRG_ORG_ALIAS }} --verbose
 
-            - name: Upload Artifact
-              uses: actions/upload-artifact@v4
-              with:
-                name: package-files
-                path: out/package/
-
-                
+            - name: Get Metadata List from Org
+              run: |
+                sf org list metadata-types --target-org ${{ secrets.SF_TRG_ORG_ALIAS }} --apiversion 64.0 --json \
+                | jq -r '.result.metadataObjects[].xmlName' | sort -u > supported-types.txt
