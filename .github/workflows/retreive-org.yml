@@ -14,6 +14,8 @@ on:
 jobs:
     validate-deployment:
         runs-on: ubuntu-latest
+        outputs:
+          present_json: ${{ steps.filter.outputs.presentJson }}
         steps:
             - name: Checkout the Code
               uses: actions/checkout@v3
@@ -49,12 +51,84 @@ jobs:
               run: sf org display --target-org ${{ secrets.SF_TRG_ORG_ALIAS }} --verbose
 
             - name: Get Metadata List from Org
+              id: get_types
               run: |
-                sf org list metadata-types --target-org ${{ secrets.SF_TRG_ORG_ALIAS }} --apiversion 64.0 --json \
-                | jq -r '.result.metadataObjects[].xmlName' | sort -u > supported-types.txt
+                # Ask Salesforce for the catalog of types (JSON)
 
-            - name: Upload supported-types.txt
-              uses: actions/upload-artifact@v4
-              with:
-                name: supported-types
-                path: supported-types.txt
+                $raw = sf org list metadata-types --target-org ${{ secrets.SF_TRG_ORG_ALIAS }} --api-version 64.0 --json
+                $obj = $raw | ConvertFrom-Json
+
+                # Pull just the type names (xmlName) into a PowerShell array
+
+                $types = $obj.result.metadataObjects | ForEach-Object { $_.xmlName }
+
+                # Save a text file (optional, for download)
+
+                $types | Set-Content supported-types.txt -Encoding utf8
+
+                # Also keep as JSON array (single line) for later steps
+
+                $typesJson = $types | ConvertTo-Json -Compress
+                "json=$typesJson" >> $env:GITHUB_OUTPUT
+
+            # 2) From that list, keep ONLY the types that have ≥1 item in the org    
+            - name: Filter to types that actually exist (≥1 item)
+              id: filter
+              env:
+                ORG_ALIAS: ${{ secrets.SF_TRG_ORG_ALIAS }}
+              run: |
+                # Function to run sf command and return result[] as array
+                function SfJson([string[]]$Args) {
+                  try {
+                    $raw = & sf @Args --json
+                    if (-not $raw) { return @() }
+                    $obj = $raw | ConvertFrom-Json
+                    if ($null -eq $obj -or $null -eq $obj.result) { return @() }
+                    if ($obj.result -is [System.Array]) { return $obj.result } else { return @($obj.result) }
+                  } catch { return @() }
+                }
+              
+                # Rehydrate the type list from previous step
+                $types = '${{ steps.get_types.outputs.json }}' | ConvertFrom-Json
+              
+                # Foldered metadata map
+                $folderMap = @{
+                  Report        = @('ReportFolder')
+                  Dashboard     = @('DashboardFolder')
+                  Document      = @('DocumentFolder')
+                  EmailTemplate = @('EmailTemplateFolder','EmailFolder')
+                }
+              
+                # This will store only the types that are present
+                $present = @()
+              
+                foreach ($t in $types) {
+                  if ($folderMap.ContainsKey($t)) {
+                    # For foldered types, loop folders
+                    $found = $false
+                    foreach ($ft in $folderMap[$t]) {
+                      $folders = SfJson @('org','list','metadata','-m',"$ft",'-o',"$env:ORG_ALIAS")
+                      foreach ($f in $folders) {
+                        $fname = $f.fullName
+                        if ([string]::IsNullOrWhiteSpace($fname)) { continue }
+                        $items = SfJson @('org','list','metadata','-m',"$t",'--folder',"$fname",'-o',"$env:ORG_ALIAS")
+                        if ($items.Count -gt 0) {
+                          $found = $true
+                          break
+                        }
+                      }
+                      if ($found) { break }
+                    }
+                    if ($found) { $present += $t }
+                  } else {
+                    # Non-foldered: one check
+                    $items = SfJson @('org','list','metadata','-m',"$t",'-o',"$env:ORG_ALIAS")
+                    if ($items.Count -gt 0) { $present += $t }
+                  }
+                }
+              
+                # Save the list to a file (optional)
+                $present | Sort-Object | Set-Content present-types.txt
+              
+                # Output as JSON array
+                "presentJson=$($present | ConvertTo-Json -Compress)" >> $env:GITHUB_OUTPUT
