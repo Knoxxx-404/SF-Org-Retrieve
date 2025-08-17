@@ -52,6 +52,7 @@ jobs:
 
             - name: Get Metadata List from Org
               id: get_types
+              shell: pwsh
               run: |
                 # Ask Salesforce for the catalog of types (JSON)
 
