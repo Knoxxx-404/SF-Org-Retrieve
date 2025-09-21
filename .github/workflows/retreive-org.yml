@@ -32,7 +32,7 @@ jobs:
                 curl https://developer.salesforce.com/media/salesforce-cli/sf/channels/stable/sf-win32-x64.tar.gz -o sf-win-x64.tar.gz
                 mkdir -p sf
                 tar xzf sf-win-x64.tar.gz -C %cd%\sf --strip-components 1
-                echo "%cd%sf\sf\bin">>%GITHUB_PATH%
+                echo "%cd%\sf\sf\bin">>%GITHUB_PATH%
 
             - name: Checking sf cli
               run: sf --version
