@@ -22,11 +22,12 @@ jobs:
 
             - name: Debug:Show directory structure
               run: |
-                echo "Current directory: $(pwd)"
+                echo "Current directory: %cd%"
                 ls -la
                 ls -la force-app || echo "force-app does not exist"
 
             - name: Installing sf cli
+              shell: cmd
               run: |
                 echo Installing sf...
                 curl https://developer.salesforce.com/media/salesforce-cli/sf/channels/stable/sf-win32-x64.tar.gz -o sf-win-x64.tar.gz
