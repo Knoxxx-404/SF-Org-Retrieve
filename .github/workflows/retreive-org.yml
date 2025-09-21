@@ -30,9 +30,9 @@ jobs:
               run: |
                 echo Installing sf...
                 curl https://developer.salesforce.com/media/salesforce-cli/sf/channels/stable/sf-win32-x64.tar.gz -o sf-win32-x64.tar.gz
-                mkdir -p ~/cli/sf
-                tar -xzf sf-win32-x64.tar.gz -C ~/cli/sf --strip-components 1
-                echo "${PWD}/sf-cli/bin" >> $GITHUB_PATH
+                mkdir -p ./cli/sf
+                tar -xzf sf-win32-x64.tar.gz -C ./cli/sf --strip-components 1
+                echo "${PWD}/cli/sf/bin" >> $GITHUB_PATH
 
             - name: Checking sf cli
               run: sf --version
