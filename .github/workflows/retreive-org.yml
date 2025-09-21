@@ -13,7 +13,7 @@ on:
     workflow_dispatch:
 jobs:
     validate-deployment:
-        runs-on: ubuntu-latest
+        runs-on: windows-latest
         outputs:
           present_json: ${{ steps.filter.outputs.presentJson }}
         steps:
@@ -31,7 +31,7 @@ jobs:
             - name: Installing sf cli
               run: |
                 echo Installing sf...
-                curl https://developer.salesforce.com/media/salesforce-cli/sf/channels/stable/sf-linux-x64.tar.gz -o sf-linux-x64.tar.gz
+                curl https://developer.salesforce.com/media/salesforce-cli/sf/channels/stable/sf-win32-x64.tar.gz -o sf-linux-x64.tar.gz
                 mkdir -p sf-cli
                 tar -xzf sf-linux-x64.tar.gz -C sf-cli --strip-components 1
                 echo "${PWD}/sf-cli/bin" >> $GITHUB_PATH
